@@ -1,6 +1,3 @@
-## Update: I've built a quick tool based on this repo. Start running your Tensorflow project on AWS in <30seconds using Floyd. See [www.floydhub.com](https://www.floydhub.com). It's free to try out. 
-### Happy to take feature requests/feedback and answer questions - mail me sai@floydhub.com.
-
 ## Setting up a Deep Learning Machine from Scratch (Software)
 A detailed guide to setting up your machine for deep learning research. Includes instructions to install drivers, tools and various deep learning frameworks. This was tested on a 64 bit machine with Nvidia Titan X, running Ubuntu 14.04
 
@@ -38,11 +35,11 @@ There are several great guides with a similar goal. Some are limited in scope, w
         lspci | grep -i nvidia
 
 * Go to the [Nvidia website](http://www.geforce.com/drivers) and find the latest drivers for your graphics card and system setup. You can download the driver from the website and install it, but doing so makes updating to newer drivers and uninstalling it a little messy. Also, doing this will require you having to quit your X server session and install from a Terminal session, which is a hassle. 
-* We will install the drivers using apt-get. Check if your latest driver exists in the ["Proprietary GPU Drivers" PPA](https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa). Note that the latest drivers are necessarily the most stable. It is advisable to install the driver version recommended on that page. Add the "Proprietary GPU Drivers" PPA repository. At the time of this writing, the latest version is 361.42, however, the recommended version is 352:
+* We will install the drivers using apt-get. Check if your latest driver exists in the ["Proprietary GPU Drivers" PPA](https://launchpad.net/~graphics-drivers/+archive/ubuntu/ppa). Note that the latest drivers are necessarily the most stable. It is advisable to install the driver version recommended on that page. Add the "Proprietary GPU Drivers" PPA repository. At the time of this writing, the latest version is 381.22, however, the recommended version is 375:
 
         sudo add-apt-repository ppa:graphics-drivers/ppa
         sudo apt-get update
-        sudo apt-get install nvidia-352
+        sudo apt-get install nvidia-375
 
 * Restart your system
 
@@ -53,9 +50,9 @@ There are several great guides with a similar goal. Some are limited in scope, w
         cat /proc/driver/nvidia/version
         
 ### CUDA
-* Download CUDA 7.5 from [Nvidia](https://developer.nvidia.com/cuda-toolkit). Go to the Downloads directory and install CUDA
+* Download CUDA 8 from [Nvidia](https://developer.nvidia.com/cuda-toolkit). Go to the Downloads directory and install CUDA
 
-        sudo dpkg -i cuda-repo-ubuntu1404*amd64.deb
+        sudo dpkg -i cuda-repo-ubuntu1604*amd64.deb
         sudo apt-get update
         sudo apt-get install cuda
         
@@ -76,7 +73,7 @@ There are several great guides with a similar goal. Some are limited in scope, w
 #### Checking your CUDA Installation (Optional)
 * Install the samples in the CUDA directory. Compile them (takes a few minutes):
 
-        /usr/local/cuda/bin/cuda-install-samples-7.5.sh ~/cuda-samples
+        /usr/local/cuda/bin/cuda-install-samples-8.0.sh ~/cuda-samples
         cd ~/cuda-samples/NVIDIA*Samples
         make -j $(($(nproc) + 1))
         
@@ -87,8 +84,7 @@ There are several great guides with a similar goal. Some are limited in scope, w
         bin/x86_64/linux/release/deviceQuery
         
 ### cuDNN
-* cuDNN is a GPU accelerated library for DNNs. It can help speed up execution in many cases. To be able to download the cuDNN library, you need to register in the Nvidia website at [https://developer.nvidia.com/cudnn](https://developer.nvidia.com/cudnn). This can take anywhere between a few hours to a couple of working days to get approved. Once your registration is approved, download **cuDNN v4 for Linux**. The latest version is cuDNN v5, however, not all toolkits support it yet.
-
+* cuDNN is a GPU accelerated library for DNNs. It can help speed up execution in many cases. To be able to download the cuDNN library, you need to register in the Nvidia website at [https://developer.nvidia.com/cudnn](https://developer.nvidia.com/cudnn). This can take anywhere between a few hours to a couple of working days to get approved. Once your registration is approved, download **cuDNN v6 for Linux**.
 * Extract and copy the files
 
         cd ~/Downloads/
@@ -103,8 +99,9 @@ There are several great guides with a similar goal. Some are limited in scope, w
 
 ### Python Packages
 * Install some useful Python packages using apt-get. There are some version incompatibilities with using pip install and TensorFlow ( see https://github.com/tensorflow/tensorflow/issues/2034)
- 
-        sudo apt-get update && apt-get install -y python-numpy python-scipy python-nose \
+
+	sudo apt-get update
+	apt-get install -y python-numpy python-scipy python-nose \
                                                 python-h5py python-skimage python-matplotlib \
 		                                python-pandas python-sklearn python-sympy
         sudo apt-get clean && sudo apt-get autoremove
@@ -124,7 +121,7 @@ There are several great guides with a similar goal. Some are limited in scope, w
         >>> exit()
       
 ### OpenBLAS 
-* OpenBLAS is a linear algebra library and is faster than Atlas. This step is optional, but note that some of the following steps assume that OpenBLAS is installed. You'll need to install gfortran to compile it.
+* OpenBLAS is a linear algebra library and is faster than Atlas. This step is optional, but note that some of the following steps assume that OpenBLAS is installed. You'll need to install gfortran to compile it.You may need to include target=HASWELL in the make command.
 
         mkdir ~/git
         cd ~/git
@@ -153,7 +150,7 @@ There are several great guides with a similar goal. Some are limited in scope, w
 * Clone the Caffe repo
 
         cd ~/git
-        git clone https://github.com/BVLC/caffe.git
+        git clone https://github.com/NVIDIA/caffe.git
         cd caffe
         cp Makefile.config.example Makefile.config
         
@@ -164,6 +161,10 @@ There are several great guides with a similar goal. Some are limited in scope, w
 * If you installed OpenBLAS, modify the `BLAS` parameter value to `open`
 
         sed -i 's/BLAS := atlas/BLAS := open/' Makefile.config
+
+* If you want to use pycaffe, uncomment the `WITH_PYTHON_LAYER := 1` line in the Makefile
+
+        sed -i 's/# WITH_PYTHON_LAYER := 1/WITH_PYTHON_LAYER := 1/' Makefile.config
         
 * Install the requirements, build Caffe, build the tests, run the tests and ensure that all tests pass. Note that all this takes a while
 
@@ -191,7 +192,7 @@ There are several great guides with a similar goal. Some are limited in scope, w
 ### Theano
 * Install the pre-requisites and install Theano. These instructions are sourced from [here](http://deeplearning.net/software/theano/install_ubuntu.html)
 
-        sudo apt-get install python-numpy python-scipy python-dev python-pip python-nose g++ python-pygments python-sphinx python-nose
+        sudo apt-get install python-numpy python-scipy python-dev python-pip python-nose g++ python-pygments python-sphinx
         sudo pip install Theano
         
 * Test your Theano installation. There should be no warnings/errors when the import command is executed.
